@@ -103,7 +103,6 @@ flowchart LR
 
 ## 🗄️ Database design
 
-![ER diagram](docs/Database_Design.png)
 
 <!-- > 🖼️ **PLACEHOLDER:** export your finished ER diagram as `docs/er-diagram.png`. The interactive version below renders directly on GitHub, so the image is only a fallback and can be removed if you prefer. -->
 
