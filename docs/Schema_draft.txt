@@ -1,0 +1,59 @@
+
+1. authors Table
+
+• id (SERIAL) PRIMARY KEY: Standard sequential auto-incrementing integer identity asset.
+• name (VARCHAR(255) NOT NULL): The author's full name.
+
+2. loan_policies Table
+
+• policy_id (SERIAL) PRIMARY KEY: Auto-incrementing policy profile identifier.
+• policy_name (VARCHAR(100) NOT NULL): Descriptive title (e.g., 'New Releases').
+• loan_duration_days (INTEGER NOT NULL): Base borrowing window. CHECK (loan_duration_days > 0).
+• reprieve_duration_days (INTEGER NOT NULL): Leniency cushion window. CHECK (reprieve_duration_days >= 0).
+• daily_penalty_rate (DECIMAL(10, 2) NOT NULL): Late fee rate per day late. CHECK (daily_penalty_rate >= 0.00).
+
+3. books Table
+
+• isbn (VARCHAR(20)) PRIMARY KEY: Fixed catalog identifier string.
+• name (VARCHAR(255) NOT NULL): Book title.
+• edition (INTEGER NOT NULL): Publication edition number. CHECK (edition > 0).
+• policy_id (INTEGER NOT NULL): FOREIGN KEY referencing loan_policies(policy_id). Consistently enforced via NOT NULL.
+
+4. book_authors Table (Junction Table)
+
+• isbn (VARCHAR(20)): FOREIGN KEY referencing books(isbn) ON DELETE CASCADE.
+• author_id (INTEGER): FOREIGN KEY referencing authors(id) ON DELETE CASCADE.
+• Composite Identity: PRIMARY KEY (isbn, author_id).
+
+5. book_copies Table
+
+Manages physical inventory with zero redundant flags. A copy is available if it has no corresponding row in the loans table where returned_at IS NULL.
+• barcode (VARCHAR(50)) PRIMARY KEY: Unique physical barcode tag sticker.
+• isbn (VARCHAR(20) NOT NULL): FOREIGN KEY referencing books(isbn) ON DELETE RESTRICT.
+
+6. members Table
+
+• unique_id (VARCHAR(50)) PRIMARY KEY: Library card string token.
+• name (VARCHAR(255) NOT NULL): Member full name.
+• current_loans_count (INTEGER NOT NULL DEFAULT 0): Cache count. CHECK (current_loans_count >= 0 AND current_loans_count <= 3).
+• is_eligible_to_borrow (BOOLEAN NOT NULL DEFAULT TRUE): Eligibility permission switch flag.
+• total_penalty_balance (DECIMAL(10, 2) NOT NULL DEFAULT 0.00): Cash debt balance field. CHECK (total_penalty_balance >= 0.00).
+
+7. loans Table
+
+• loan_id (SERIAL) PRIMARY KEY: Unique loan transaction row identifier.
+• member_id (VARCHAR(50) NOT NULL): FOREIGN KEY referencing members(unique_id) ON DELETE RESTRICT.
+• barcode (VARCHAR(50) NOT NULL): FOREIGN KEY referencing book_copies(barcode) ON DELETE RESTRICT.
+• borrowed_at (TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP): Stamped checkout time.
+• due_at (TIMESTAMP NOT NULL): Computed target deadline date.
+• reprieve_ends_at (TIMESTAMP NOT NULL): Final drop-dead milestone before fees accrue.
+• returned_at (TIMESTAMP NULL): Stamped when book returns. CHECK (returned_at >= borrowed_at).
+• accumulated_penalty (DECIMAL(10, 2) NOT NULL DEFAULT 0.00): Fine specific to this individual transaction row. CHECK (accumulated_penalty >= 0.00).
+• Timeline Check Constraint: CONSTRAINT chk_dates_order CHECK (due_at >= borrowed_at AND reprieve_ends_at >= due_at).
+
+8. payments Table
+
+• payment_id (SERIAL) PRIMARY KEY: Unique receipt logging identifier.
+• member_id (VARCHAR(50) NOT NULL): FOREIGN KEY referencing members(unique_id) ON DELETE RESTRICT.
+• amount_paid (DECIMAL(10, 2) NOT NULL): Monetary transaction value. CHECK (amount_paid > 0.00).
+• paid_at (TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP): Stamped execution payment time.

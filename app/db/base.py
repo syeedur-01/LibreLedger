@@ -1,0 +1,9 @@
+from app.models.base import Base                 # noqa: F401
+from app.models.loan_policy import LoanPolicy    # noqa: F401
+from app.models.author import Author             # noqa: F401
+from app.models.book import Book                 # noqa: F401
+from app.models.book_author import BookAuthor    # noqa: F401
+from app.models.book_copy import BookCopy        # noqa: F401
+from app.models.member import Member             # noqa: F401
+from app.models.loan import Loan                 # noqa: F401
+from app.models.payment import Payment           # noqa: F401
